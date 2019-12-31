@@ -1,0 +1,67 @@
+---
+- hosts: all
+  vars:
+    PackageSrcName: shkj 
+    RsyncServer: 192.168.100.188 
+    DestRsyncSqlServerPath: /cygdrive/c/DayRelease/SCM_IronMan_SQLServer #同步目标目录C:DayRelease\SCM_IronMan_SQLServer
+    DestRsyncOraclePath: /cygdrive/c/DayRelease/SCM_IronMan_Oracle       #同步目标目录C:DayRelease\SCM_IronMan_Oracle  
+    DestRsyncPath: /cygdrive/c/VersionCode                    #同步目标目录C:DayRelease\SCM_IronMan 
+    DestRsyncPassPath: /cygdrive/c/rsyncd.passwd                         #rsync密码文件保存在c:\rsyncd.passwd
+    DestRsyncUserName: rsyncuser                                         #使用虚拟用户rsyncuser进行文件同步 
+    CwRsyncPath: C:\Program Files\cwRsync\bin                            #客户端rsync安装目录 
+    PackageDestPath: c:\SCM7\
+    PackageBackupPath: d:\VersionBackup\
+  tasks:
+#    - name: 检查iis站点备份目录是否存在
+#      win_stat:
+#        path: '{{ PackageBackupPath }}'
+#      register: back_dir_stat
+#    - name: 如果备份目录不存在就创建,存在则跳过(Skipping)
+#      raw: 'CMD /C "mkdir {{ PackageBackupPath }}"'
+#      when: back_dir_stat.stat.exists==False
+#    - name: 备份站点
+#      script: backupVersion.bat
+#      register: back_up_stat
+#    - debug: var=back_up_stat  
+    - name: 查看iis站点虚拟目录状态 
+      win_stat: 
+        path: '{{ PackageDestPath }}'
+      register: file_state
+    - debug: var=file_state
+    - name: 进入Rsync安装目录，准备同步目录
+      raw: 'CMD /C "cd {{ CwRsyncPath }} "' 
+    - name: 开始同步目录到SCM_IronMan(注意查看同步状态，是否100%完成)
+      raw: 'CMD /C "rsync.exe -auv --password-file={{ DestRsyncPassPath }} -P --progress --timeout=600  {{ DestRsyncUserName }}@{{ RsyncServer }}::{{ PackageSrcName }} {{ DestRsyncPath }}"'
+      register: run_state
+    - debug: var=run_state
+#   - name: 开始同步目录到SCM_IronMan_SQLServer(注意查看同步状态，是否100%完成)
+#     raw: 'CMD /C "rsync.exe -auv --password-file={{ DestRsyncPassPath }} -P --progress --timeout=600  {{ DestRsyncUserName }}@{{ RsyncServer }}::{{ PackageSrcName }} {{ DestRsyncSqlServerPath }}"'
+#     register: run_state
+#   - debug: var=run_state
+#   - name: 开始同步目录到SCM_IronMan_Oracle(注意查看同步状态，是否100%完成)
+#     raw: 'CMD /C "rsync.exe -auv --password-file={{ DestRsyncPassPath }} -P --progress --timeout=600  {{ DestRsyncUserName }}@{{ RsyncServer }}::{{ PackageSrcName }} {{ DestRsyncOraclePath }}"'
+#     register: run_state
+#   - debug: var=run_state
+    - name: 停止IIS服务
+      raw: 'CMD /C "C:\VersionCode\iisStop.bat"'
+      register: iis_stop_stat
+    - debug: var=iis_stop_stat
+    - name: 解压升级文件并重命名文件夹
+      raw: 'CMD /C "C:\VersionCode\upgradeWebSite.bat"'
+      register: web_site_upgrade
+    - debug: var=web_site_upgrade
+    - name: 拷贝文件夹
+      raw: 'CMD /C "C:\VersionCode\版本覆盖.bat"'
+      when: web_site_upgrade.rc==0
+      register: copy_stat
+    - debug: var=copy_stat 
+    - name: 启动IIS服务
+      raw: 'CMD /C "C:\VersionCode\重起IronMan.bat"'
+      register: iis_stat
+    - debug: var=iis_stat
+    - name: 删除文件夹
+      win_file:
+        path: c:\\VersionCode\\software
+        state: absent
+      register: absent_stat
+    - debug: var=absent_stat

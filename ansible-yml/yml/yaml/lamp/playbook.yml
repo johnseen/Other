@@ -1,0 +1,4 @@
+---
+- hosts: apt
+  var_files:
+        - vars.yml

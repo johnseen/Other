@@ -1,0 +1,32 @@
+---
+- hosts: all
+  vars:
+    PackageSrcName: shkj
+    RsyncServer: 192.168.100.188 
+    DestRsyncPath: /cygdrive/c/iis/
+    DestRsyncPassPath: /cygdrive/c/rsyncd.passwd
+    DestRsyncUserName: rsyncuser
+    CwRsyncPath: C:\Program Files\cwRsync\bin 
+    PackageDestPath: c:\iis\
+    PackageBackupPath: c:\Backup\
+  tasks:
+    - name: 查看同步目录状态 
+      win_stat: 
+        path: '{{ PackageDestPath }}'
+      register: file_state
+    - debug: var=file_state
+    - name: 如果目录不存在就创建，存在则跳过 
+      raw: 'CMD /C "mkdir  {{ PackageDestPath }}" ' #不存在就创建目录
+      when: file_state.stat.exists==False
+    - name: 进入Rsync安装目录，准备同步目录
+      raw: 'CMD /C "cd {{ CwRsyncPath }} "' #进入目标目录
+    - name: 开始同步目录(注意查看同步状态，是否100%完成)
+      raw: 'CMD /C "rsync.exe -auv --password-file={{ DestRsyncPassPath }} -P --progress --timeout=600  {{ DestRsyncUserName }}@{{ RsyncServer }}::{{ PackageSrcName }} {{ DestRsyncPath }}"'
+      register: run_state
+    - debug: var=run_state
+    - name: 开始执行脚本
+      raw: 'CMD /C "cd c:"' 
+    - name: 执行
+      script: filecopy.bat
+      register: cmd_state
+    - debug: var=cmd_state

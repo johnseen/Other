@@ -1,0 +1,6 @@
+---
+- hosts: web
+  remote_user: root
+  tasks:
+  - name: ensure apache is at the laster version
+    yum: pkg=httpd state=latest

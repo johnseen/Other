@@ -1,0 +1,10 @@
+---
+- hosts: all
+  vars: 
+    packageSrcPath: /opt/local/software
+    packageDestPath: c:\1\
+    packageBackupPath: c:\Temp\
+  tasks:
+    - name: create upgrade directory 
+      win_stat:
+           path: '{{ packageDestPath }}' 

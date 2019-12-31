@@ -1,0 +1,12 @@
+---
+- hosts: deku
+    vars_prompt:
+       - name: share_user
+         prompt: "what is your network username"
+       - name: share_pass
+         prompt: "what is your network password"
+         private: yes                          #yes 表示用户输入命令默认不可见  no 用户输入可见
+  tasks:
+    - name: test when
+      yum: 'name=mysql-server state=present'
+      

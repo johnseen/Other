@@ -1,0 +1,7 @@
+---
+- hosts: web
+  vars:
+     foo: bar
+  tasks:
+     #- name: debug the var
+     - debug: msg=ansible_eth0

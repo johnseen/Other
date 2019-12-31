@@ -1,0 +1,7 @@
+---
+- hosts: web
+  remote_user: root
+  gather_facts: no
+  tasks:
+  - debug: 
+      msg: "System {{ inventory_hostname }} has gateway {{ ansible_default_ipv4.gateway }}"

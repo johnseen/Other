@@ -1,0 +1,13 @@
+{
+	"name": "examplenodeapp",
+	"description": "Example Express node.js app",
+	"author": "yun"
+	"dependencies": {
+	"express": "3.x.x"
+},
+	"engine": "node >= 0.10.6"
+
+
+
+
+}

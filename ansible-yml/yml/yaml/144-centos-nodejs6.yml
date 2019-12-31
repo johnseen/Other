@@ -1,0 +1,37 @@
+---
+- hosts: centos6
+  tasks:
+  - name: 导入Remi GPG秘钥
+    rpm_key: "key={{ item }} state=present"
+    with_items:
+        - "http://rpms.famillecollet.com/RPM-GPG-KEY-remi"
+  - name: Install remi repo
+    command: 'rpm -Uvh --force {{ item.href }} creates={{ item.creates }}'
+    with_items: 
+        - href: "http://rpms.famillecollet.com/enterprise/remi-release-6.rpm"
+          creates: "/etc/yum.repos.d/remi.repo"
+  - name: 安装remi源
+    yum: name=epel-release state=present
+  - name: 关闭防火墙
+    service: name=iptables state=stopped
+  - name: 安装Nodejs和npm
+    yum: name=npm state=present enablerepo=epel
+  - name: 使用淘宝源 
+    command: "npm config set registry https://registry.npm.taobao.org"
+  - name: 关闭npm的https
+    command: "npm config set strict-ssl false"
+  - name: 安装Forenver
+    npm: name=forever global=yes state=latest
+  - name: 确保node。js app目录存在
+    file: "path={{ node_apps_location }} state=directory"
+  - name: 复制nodejs整个目录到app主机
+    copy: "src=/yaml/app dest={{ node_apps_location }}" 
+  - name: 安装package.json文件中定义的依赖关系
+    npm: "path={{ node_apps_location }}/app"
+  - name: 获取正在运行的Nodejsapp列表
+    command: forever list
+    register: forever_list
+    changed_when: false
+  - name: 启动nodejsapp
+    command: "forever start {{ node_apps_location }}/app/app.js"
+    when: "forever_list.stdout.find('{{ node_apps_location}}/app/app.js') == -1"

@@ -1,0 +1,7 @@
+---
+- hosts: all
+  tasks:
+    - name: delete file from remote 
+      win_file: 
+        path: c:\\VersionCode\\software
+        state: absent 

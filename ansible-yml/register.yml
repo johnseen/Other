@@ -1,0 +1,8 @@
+---
+- hosts: 192.168.100.154
+  remote_user: root
+  tasks:
+  - name: test register
+    shell: hostname
+    register: result
+  - debug: var=result.stdout

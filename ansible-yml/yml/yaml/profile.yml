@@ -1,0 +1,10 @@
+---
+- hosts: centos6
+  tasks:
+   - name: 为远程主机指定环境变量
+     lineinfile: dest=~/.bash_profile regexp=^ENV_VAR= line=ENV_VAR=value
+   - name: 获取指定的环境变量，并保存在foo中
+     shell: 'source ~/.bash_profile && echo $ENV_VAR'
+     register: foo
+   - name: 打印环境变量
+     debug: msg="the variable is {{ foo.stdout }}"

@@ -1,0 +1,6 @@
+---
+- hosts: deku
+  tasks:
+    - name: test when
+      yum: 'name=mysql-server state=present'
+      
